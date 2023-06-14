@@ -32,7 +32,7 @@ Get help for the command line parameters by typing
 ```
 ./cutoutSpots.py -h
 ```
-1. Create a folder for your work. Note that the script will create a bunch of json, html and png files when it runs. This will mean lutter in your working directory. 
+1. Create a folder for your work. Note that the script will create a bunch of json, html and png files when it runs. This will mean clutter in your working directory. 
 2. Copy the two .FITS files, your left and right Hartmann exposures, into this folder. 
 3. Run the script by running
    ```
