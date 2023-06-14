@@ -1,0 +1,116 @@
+<html>
+
+<script language="Javascript" src="results.js"></script>
+<script language="Javascript">
+
+window.onload = (event) => { 
+	console.log('The page has fully loaded');
+	onLoad();
+};
+
+
+function buildSummary() {
+	let tableHTML = "<table width='100%' border='1'>";
+	tableHTML+= "<tr><th>&nbsp;</th><th>Left</th><th>Right</th></tr>";
+	tableHTML+= "<tr>";
+	tableHTML+= "<th align='right' width='20%'>Filename:</th>";
+	tableHTML+= "<td align='center'>" + results['left_image'].filename + "</td>";
+	tableHTML+= "<td align='center'>" + results['right_image'].filename + "</td>";
+	tableHTML+= "</tr>";
+	
+	tableHTML+= "<tr>";
+	tableHTML+= "<th align='right' width='20%'>Arm:</th>";
+	tableHTML+= "<td align='center'>" + results['left_image'].arm + "</td>";
+	tableHTML+= "<td align='center'>" + results['right_image'].arm + "</td>";
+	tableHTML+= "</tr>";
+	
+	tableHTML+= "<tr>";
+	tableHTML+= "<th align='right' width='20%'>VPH:</th>";
+	tableHTML+= "<td align='center'>" + results['left_image'].VPH + "</td>";
+	tableHTML+= "<td align='center'>" + results['right_image'].VPH + "</td>";
+	tableHTML+= "</tr>";
+	
+	tableHTML+= "<tr>";
+	tableHTML+= "<th align='right' width='20%'>Shutter:</th>";
+	tableHTML+= "<td align='center'>" + results['left_image'].shutter + "</td>";
+	tableHTML+= "<td align='center'>" + results['right_image'].shutter + "</td>";
+	tableHTML+= "</tr>";
+	
+	tableHTML+="</table>";
+
+	document.getElementById("summary").innerHTML = tableHTML;
+}
+
+function buildResults() {
+	let tableHTML = "<table width='50%' border='1'>";
+	tableHTML+= "<tr>";
+	tableHTML+= "<th align='right'>median focus:</th>";
+	tableHTML+= "<td align='center'>" + results.median_focus + "</td>";
+	tableHTML+= "</tr>";
+	tableHTML+= "<tr>";
+	tableHTML+= "<th align='right'>median tip:</th>";
+	tableHTML+= "<td align='center'>" + results.median_tip + "</td>";
+	tableHTML+= "</tr>";
+	tableHTML+= "<tr>";
+	tableHTML+= "<th align='right'>median tilt:</th>";
+	tableHTML+= "<td align='center'>" + results.median_tilt + "</td>";
+	tableHTML+= "</tr>";
+	tableHTML+= "<tr>";
+	tableHTML+= "<th align='right'>dx</th>";
+	innerTable = "<table border='1'>";
+		for (i of [0, 1, 2]) {
+			innerTable+="<tr>";
+			for (j of [0, 1, 2])
+				innerTable+="<td>" + results.dx_matrix[i][j] + "</td>";
+			innerTable+="</tr>"
+		}
+		innerTable+="</table>";
+	console.log(innerTable)
+	tableHTML+= "<td align='center'>" + innerTable + "</th>";
+	tableHTML+= "</tr>";
+	
+	tableHTML+="</table>";
+
+	document.getElementById("results").innerHTML = tableHTML;
+}
+
+function buildImages() {
+	let imageHTML = "<table>";
+	for (i=1; i<10; i++) {
+		imageHTML+="<tr>"
+		let imageString = zeroPad(i) + "_left.png";
+		imageHTML+="<td><img src='" + imageString + "'></td>";
+		imageString = zeroPad(i) + "_right.png";
+		imageHTML+="<td><img src='" + imageString + "'></td>";	
+		imageString = zeroPad(i) + "_zquiver.png";
+		imageHTML+="<td><img src='" + imageString + "'></td>";	
+		imageHTML+="</tr>"
+		
+	}
+	imageHTML+="</table>";
+	document.getElementById("images").innerHTML = imageHTML;
+}
+
+function onLoad() {
+	console.log(results);
+	buildSummary();
+	buildResults();
+	buildImages();
+  };
+
+function zeroPad(input) {
+	if (input < 10) return "0" + input.toString();
+	return input.toString();
+} 
+
+</script>
+
+<h1>Hartmann test results</h1>
+<h2>Summary</h2>
+<div id="summary"></div>
+<h2>Results</h2>
+<div id="results"></div>
+<h2>Images</h2>
+<div id="images"></div>
+</html>
+
