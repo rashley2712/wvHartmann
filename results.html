@@ -11,7 +11,7 @@ window.onload = (event) => {
 
 function buildSummary() {
 	let tableHTML = "<table width='100%' border='1'>";
-	tableHTML+= "<tr><th>&nbsp;</th><th>Left</th><th>Right</th></tr>";
+	tableHTML+= "<tr><th>&nbsp;</th><th>Left shutter in</th><th>Right shutter in</th></tr>";
 	tableHTML+= "<tr>";
 	tableHTML+= "<th align='right' width='20%'>Filename:</th>";
 	tableHTML+= "<td align='center'>" + results['left_image'].filename + "</td>";
@@ -22,6 +22,12 @@ function buildSummary() {
 	tableHTML+= "<th align='right' width='20%'>Arm:</th>";
 	tableHTML+= "<td align='center'>" + results['left_image'].arm + "</td>";
 	tableHTML+= "<td align='center'>" + results['right_image'].arm + "</td>";
+	tableHTML+= "</tr>";
+	
+	tableHTML+= "<tr>";
+	tableHTML+= "<th align='right' width='20%'>Focal plane mode:</th>";
+	tableHTML+= "<td align='center'>" + results['left_image'].fpmode + "</td>";
+	tableHTML+= "<td align='center'>" + results['right_image'].fpmode + "</td>";
 	tableHTML+= "</tr>";
 	
 	tableHTML+= "<tr>";
@@ -48,12 +54,12 @@ function buildResults() {
 	tableHTML+= "<td align='center'>" + results.median_focus + "</td>";
 	tableHTML+= "</tr>";
 	tableHTML+= "<tr>";
-	tableHTML+= "<th align='right'>median tip:</th>";
-	tableHTML+= "<td align='center'>" + results.median_tip + "</td>";
-	tableHTML+= "</tr>";
-	tableHTML+= "<tr>";
 	tableHTML+= "<th align='right'>median tilt:</th>";
 	tableHTML+= "<td align='center'>" + results.median_tilt + "</td>";
+	tableHTML+= "</tr>";
+	tableHTML+= "<tr>";
+	tableHTML+= "<th align='right'>median tip:</th>";
+	tableHTML+= "<td align='center'>" + results.median_tip + "</td>";
 	tableHTML+= "</tr>";
 	tableHTML+= "<tr>";
 	tableHTML+= "<th align='right'>dx</th>";
@@ -75,7 +81,7 @@ function buildResults() {
 }
 
 function buildImages() {
-	let imageHTML = "<table>";
+	let imageHTML = "<table border='1'>";
 	for (i=1; i<10; i++) {
 		imageHTML+="<tr>"
 		let imageString = zeroPad(i) + "_left.png";

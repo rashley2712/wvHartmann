@@ -49,6 +49,7 @@ class exposure:
 		self.focusA = self.headers['FOCUSMTA']
 		self.focusB = self.headers['FOCUSMTB']
 		self.RUN = self.headers['IRAFNAME']
+		self.fpmode = self.headers['FPMODE']
 		self.dimensions = numpy.shape(self.data)
 		self.cutoutActive = False
 		self.fullData = self.data
@@ -84,14 +85,13 @@ class exposure:
 		
 	def segmentSources(self):
 		### segment
-		print(self.thresh)
 		thresh  = self.thresh
 		if thresh < 0:
 			if self.arm == 'red':
 				thresh = 5
 			else:
 				thresh = 20
-		print("threshold is", thresh)
+		print("\tusing threshold value of:", thresh)
 		data = self.data
 		threshold = thresh * self.bkg.background_rms
 		segment_map = detect_sources(data, threshold, npixels=10)
@@ -115,24 +115,34 @@ class exposure:
 		
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Loads the left and right Hartmann images and looks for spots. This version cuts out regions of the detector.')
-	parser.add_argument('--left', default="r3000987.fit", type=str, help='left hartmann exposure.')
-	parser.add_argument('--right', default="r3000989.fit", type=str, help='right hartmann exposure.')
+	parser.add_argument('-l', '--left', type=str, help='left shutter in Hartmann exposure. (right shutter open)')
+	parser.add_argument('-r', '--right', type=str, help='right shutter in Hartmann exposure. (left shutter in)')
 	parser.add_argument("--plot", action="store_true", help='Hold the plots on the display.')
 	parser.add_argument("--plotsources", action="store_true", help='Plots the found sources as a schematic.')
-	parser.add_argument("--version", action="store_true", help='Show the versions of the libraries used.')
-	parser.add_argument("--cutouts", default="../cutouts.json", help="A JSON file defining the cutouts (aka sub-regions) of the image to use.")
+	parser.add_argument("--version", action="store_true", help='Show the versions of the libraries used. Then exits.')
+	parser.add_argument("--cutouts", help="A JSON file defining the cutouts (aka sub-regions) of the image to use.")
 	parser.add_argument("--thresh", default=-1, type=int,  help="Threshhold for segmentation (default 5 red and 20 blue).")
-	
 	args = parser.parse_args()
-
+	(execPath, exec) = os.path.split(__file__)
+	
 	if args.version: 
 		print("Python version:", sys.version)
 		print("Astropy version:", astropy.__version__)
 		print("Photutils version:", photutils.__version__)
 		print("Scipy version:", scipy.__version__)
+		sys.exit()
+
+	if (args.left is None) or (args.right is None):
+		print("You must specify a left and right input image.")
+		sys.exit()
+
+	if (args.cutouts is None):
+		cutoutsFilename = os.path.join(execPath, "cutouts.json")
+	else:
+		cutoutsFilename = args.cutouts
 
 	# Load the cutouts
-	cutoutsDefFile = open(args.cutouts, "rt")
+	cutoutsDefFile = open(cutoutsFilename, "rt")
 	cutoutsDef = json.load(cutoutsDefFile)
 	cutoutsDefFile.close()
 	
@@ -168,6 +178,7 @@ if __name__ == "__main__":
 		left_exposure.subtractBackground()
 		matplotlib.pyplot.figure()
 		matplotlib.pyplot.imshow(boostImageData(left_exposure.data), cmap='gray', origin='lower', aspect='equal')
+		matplotlib.pyplot.title("centre x: %d y: %d"%(cutout['x'], cutout['y']))
 		#matplotlib.pyplot.pause(0.1)
 		filename = "%02d_left.png"%cutout['id']
 		matplotlib.pyplot.savefig(filename)
@@ -181,6 +192,7 @@ if __name__ == "__main__":
 		right_exposure.subtractBackground()
 		matplotlib.pyplot.figure()
 		matplotlib.pyplot.imshow(boostImageData(right_exposure.data), cmap='gray', origin='lower', aspect='equal')
+		matplotlib.pyplot.title("centre x: %d y: %d"%(cutout['x'], cutout['y']))
 		#matplotlib.pyplot.pause(0.1)
 		filename = "%02d_right.png"%cutout['id']
 		matplotlib.pyplot.savefig(filename)
@@ -255,14 +267,14 @@ if __name__ == "__main__":
 
 		fig, ax = matplotlib.pyplot.subplots()
 		q = ax.quiver(xValues, yValues, uValues, vValues)
-		ax.quiverkey(q, X=0.3, Y=1.05, U=2.5,
-				label='Quiver key, length = 2.5 pixel', labelpos='E')
+		quiverLength = round(numpy.mean(uValues), 0)
+		if quiverLength<1: quiverLength=1
+		ax.quiverkey(q, X=0.3, Y=-.10, U=quiverLength, label='Quiver key, length = %.0f pixels'%quiverLength, labelpos='E')
+		# Add median quiver
+		q = ax.quiver([250], [250], [median_dx], [median_dy], color='r')
 		ax.set_xlim(left=0, right=left_exposure.dimensions[1])
 		ax.set_ylim(bottom=0, top=left_exposure.dimensions[0])
-		
-
-		#matplotlib.pypl/--ot.quiver(xValues, yValues, uValues, vValues)
-		#ax.quiverkey(q, X=0.3, Y=1.1, U=10,label='Quiver key, length = 10', labelpos='E')
+		matplotlib.pyplot.title("median dx: %.2f dy: %.2f (red arrow)"%(median_dx, median_dy))
 		matplotlib.pyplot.draw()
 		matplotlib.pyplot.savefig("%02d_zquiver.png"%cutout['id'])
 		if args.plot: 
@@ -271,11 +283,10 @@ if __name__ == "__main__":
 		else: matplotlib.pyplot.close()
 		left_exposure.reset()
 		right_exposure.reset()
-	
-	print(json.dumps(cutouts, indent=4))
+		# end of the loop through each of the 9 sections
 
-	results = { "left_image" : { "filename": left_exposure.filename, "arm": left_exposure.arm, "VPH" : left_exposure.VPH, "shutter" : left_exposure.shutter },
-				"right_image" : { "filename": right_exposure.filename, "arm": right_exposure.arm, "VPH" : right_exposure.VPH, "shutter" : right_exposure.shutter }
+	results = { "left_image" : { "filename": left_exposure.filename, "arm": left_exposure.arm, "VPH" : left_exposure.VPH, "shutter" : left_exposure.shutter, "fpmode" : left_exposure.fpmode },
+				"right_image" : { "filename": right_exposure.filename, "arm": right_exposure.arm, "VPH" : right_exposure.VPH, "shutter" : right_exposure.shutter, "fpmode" : right_exposure.fpmode }
 	}
 	
 	results['dx_matrix'] = dx_matrix
@@ -308,14 +319,23 @@ if __name__ == "__main__":
 	json.dump(results, outfile, indent=4)
 	outfile.close()
 
+	# Write the json to a <script> javascript file
 	outfile = open("results.js", "wt")
 	outfile.write("var results = ")
 	outfile.write(json.dumps(results, indent=4))
 	outfile.write(";")
 	outfile.close()
+
+	# Copy the .html template to the local directory
+
+	from shutil import copyfile
+	sourceFile = os.path.join(execPath, "results.html")
+	destinationFile = "results.html"
+	copyfile(sourceFile, destinationFile)
 	
 	if args.plot: input("press a key to quit")
 
+	print("Results page is ready. Open it by typing 'firefox results.html'")
 
 
 	sys.exit()
