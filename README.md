@@ -26,3 +26,20 @@ Upgrade your instance of these libraries using the following command.
 ```
 pip3 install scipy astropy photutils --upgrade 
 ```
+## Running the script
+
+Get help for the command line parameters by typing
+```
+./cutoutSpots.py -h
+```
+1. Create a folder for your work. Note that the script will create a bunch of json, html and png files when it runs. This will mean lutter in your working directory. 
+2. Copy the two .FITS files, your left and right Hartmann exposures, into this folder. 
+3. Run the script by running
+   ```
+      [pathto]/cutoutSpots.py -l r4000332.fit -r r4000331.fit
+   ```
+4. Once the script has run, view your results by typing
+      ```
+         firefox results.html
+      ```
+      
