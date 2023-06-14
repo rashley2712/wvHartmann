@@ -8,7 +8,7 @@ Perform a git clone into a local directory on your machine.
 git clone https://github.com/rashley2712/wvHartmann
 ```
 
-Make sure that you have a relatively up to date version of the scip
+Make sure that you have a relatively up to date version of the scipy, astropy and photutils Python libraries.
 
 You can check your versions of these libraries by running 
 ```
