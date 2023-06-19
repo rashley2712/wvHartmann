@@ -72,6 +72,7 @@ class exposure:
 
 	def reset(self):
 		self.data = self.fullData
+		self.dimensions = numpy.shape(self.data)
 
 	def cutout(self, cutoutDimensions):
 		halfwidth = cutoutDimensions[2] >> 1
@@ -168,7 +169,12 @@ if __name__ == "__main__":
 		[ 0, 0, 0], 
 		[ 0, 0, 0], 
 		[ 0, 0, 0]
-	] 
+	]
+	dy_matrix = [
+		[ 0, 0, 0], 
+		[ 0, 0, 0], 
+		[ 0, 0, 0]
+	]  
 
 	for cutout in cutouts:
 		print(cutout)	
@@ -236,6 +242,7 @@ if __name__ == "__main__":
 		vValues = [ m['dy'] for m in matches]
 
 		median_dx = numpy.median(uValues)
+		median_dy = numpy.median(vValues)
 		uValues.sort()
 		lowerP = 0.166666 * 100
 		upperP = 0.833333 * 100
@@ -254,13 +261,13 @@ if __name__ == "__main__":
 		cutout['stats']['range_lower'] = round(lowerPercentile, 2)
 		cutout['stats']['range_upper'] = round(upperPercentile, 2)
 
-		dx_matrix[i][j] = round(median_dx,3)
+		dx_matrix[i][j] = round(median_dx,2)
+		dy_matrix[i][j] = round(median_dy,2)
 		j=j+1
 		if j==3:
 			j=0
 			i=i+1	
 
-		median_dy = numpy.median(vValues)
 		cutout['median_dx'] = round(median_dx,2)
 		cutout['median_dy'] = round(median_dy,2)
 		print("median values {:.2f} dx and {:.2f} dy.".format(median_dx, median_dy))
@@ -290,8 +297,8 @@ if __name__ == "__main__":
 	}
 	
 	results['dx_matrix'] = dx_matrix
+	results['dy_matrix'] = dy_matrix
 
-	print(dx_matrix)
 	print("median of 9 dx values:", numpy.median(dx_matrix))
 	tilt = [ 
 		dx_matrix[0][2] - dx_matrix[0][0], 
@@ -315,6 +322,31 @@ if __name__ == "__main__":
 
 	results['cutouts'] = cutouts
 
+	# Produce an overall quiver plot
+	fig, ax = matplotlib.pyplot.subplots()
+	fig.set_figheight(6)
+	fig.set_figwidth(12)
+	matplotlib.pyplot.imshow(boostImageData(left_exposure.data), cmap='gray', origin='lower', aspect='equal')
+	xValues = [ c['x'] for c in cutouts ]
+	yValues = [ c['y'] for c in cutouts ]
+	uValues = [ c['median_dx'] for c in cutouts]
+	vValues = [ c['median_dy'] for c in cutouts]
+	q = ax.quiver(xValues, yValues, uValues, vValues, color='w')
+	quiverLength = round(numpy.mean(uValues), 0)
+	if quiverLength<1: quiverLength=1
+	ax.quiverkey(q, X=0.3, Y=-.10, U=quiverLength, label='Quiver key, length = %.0f pixels'%quiverLength, labelpos='E')
+	ax.set_xlim(left=0, right=left_exposure.dimensions[1])
+	ax.set_ylim(bottom=0, top=left_exposure.dimensions[0])
+	median_dx = numpy.median(uValues)
+	median_dy = numpy.median(vValues)
+	matplotlib.pyplot.title("median dx: %.2f dy: %.2f"%(median_dx, median_dy))
+	matplotlib.pyplot.draw()
+	matplotlib.pyplot.savefig("full_quiver.png")
+	if args.plot: 
+		matplotlib.pyplot.show(block=False)
+		matplotlib.pyplot.pause(0.1)
+	else: matplotlib.pyplot.close()
+	
 	outfile = open("results.json", "wt")
 	json.dump(results, outfile, indent=4)
 	outfile.close()

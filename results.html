@@ -71,7 +71,16 @@ function buildResults() {
 			innerTable+="</tr>"
 		}
 		innerTable+="</table>";
-	console.log(innerTable)
+	tableHTML+= "<td align='center'>" + innerTable + "</th>";
+	tableHTML+= "<th align='right'>dy</th>";
+	innerTable = "<table border='1'>";
+		for (i of [0, 1, 2]) {
+			innerTable+="<tr>";
+			for (j of [0, 1, 2])
+				innerTable+="<td>" + results.dy_matrix[i][j] + "</td>";
+			innerTable+="</tr>"
+		}
+		innerTable+="</table>";
 	tableHTML+= "<td align='center'>" + innerTable + "</th>";
 	tableHTML+= "</tr>";
 	
@@ -97,10 +106,16 @@ function buildImages() {
 	document.getElementById("images").innerHTML = imageHTML;
 }
 
+function buildFullImage() {
+	let imageHTML = "<img src='full_quiver.png'>";
+	document.getElementById("fullimage").innerHTML = imageHTML;
+}
+
 function onLoad() {
 	console.log(results);
 	buildSummary();
 	buildResults();
+	buildFullImage();
 	buildImages();
   };
 
@@ -116,7 +131,9 @@ function zeroPad(input) {
 <div id="summary"></div>
 <h2>Results</h2>
 <div id="results"></div>
-<h2>Images</h2>
+<h2>Full image</h2>
+<div id="fullimage"></div>
+<h2>Cutout images</h2>
 <div id="images"></div>
 </html>
 
