@@ -117,7 +117,7 @@ class exposure:
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Loads the left and right Hartmann images and looks for spots. This version cuts out regions of the detector.')
 	parser.add_argument('-l', '--left', type=str, help='left shutter in Hartmann exposure. (right shutter open)')
-	parser.add_argument('-r', '--right', type=str, help='right shutter in Hartmann exposure. (left shutter in)')
+	parser.add_argument('-r', '--right', type=str, help='right shutter in Hartmann exposure. (left shutter open)')
 	parser.add_argument("--plot", action="store_true", help='Hold the plots on the display.')
 	parser.add_argument("--plotsources", action="store_true", help='Plots the found sources as a schematic.')
 	parser.add_argument("--version", action="store_true", help='Show the versions of the libraries used. Then exits.')
