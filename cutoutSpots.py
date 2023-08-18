@@ -73,6 +73,7 @@ class exposure:
 	def reset(self):
 		self.data = self.fullData
 		self.dimensions = numpy.shape(self.data)
+		self.sources = []
 
 	def cutout(self, cutoutDimensions):
 		halfwidth = cutoutDimensions[2] >> 1
