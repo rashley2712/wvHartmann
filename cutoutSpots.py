@@ -101,15 +101,15 @@ class exposure:
 		tbl = cat.to_table()
 
 		for t in tbl:
-			source = { "x" :  round(t['xcentroid'], 3), "y" : round(t['ycentroid'], 3), "peak" : round(t['max_value'], 3)}
+			source = { "x" :  round(t['xcentroid'], 3), "y" : round(t['ycentroid'], 3), "peak" : round(t['max_value'], 3), 'flux' : t['segment_flux']}
 			self.sources.append(source)
 		print("\t%d sources found."%len(self.sources))
 
 	def plotSources(self):
 		self.figure = matplotlib.pyplot.figure()
-		xValues = [ s['x'] for s in self.sources]
-		yValues = [ s['y'] for s in self.sources]
-		cValues = [ s['peak'] for s in self.sources]
+		xValues = [ s['x'] for s in self.sources ]
+		yValues = [ s['y'] for s in self.sources ]
+		cValues = [ s['peak'] for s in self.sources ]
 		matplotlib.pyplot.scatter(xValues, yValues, c=cValues, cmap="hot")
 		matplotlib.pyplot.draw()
 		matplotlib.pyplot.pause(0.1)
@@ -183,7 +183,7 @@ if __name__ == "__main__":
 		print("\tSubtracting background...")
 		left_exposure.cutout([cutout['x'], cutout['y'], cutout['width'], cutout['height']])	
 		left_exposure.subtractBackground()
-		matplotlib.pyplot.figure()
+		matplotlib.pyplot.figure(figsize=(6,6))
 		matplotlib.pyplot.imshow(boostImageData(left_exposure.data), cmap='gray', origin='lower', aspect='equal')
 		matplotlib.pyplot.title("centre x: %d y: %d"%(cutout['x'], cutout['y']))
 		#matplotlib.pyplot.pause(0.1)
@@ -197,7 +197,7 @@ if __name__ == "__main__":
 		print("\tSubtracting background...")
 		right_exposure.cutout([cutout['x'], cutout['y'], cutout['width'], cutout['height']])
 		right_exposure.subtractBackground()
-		matplotlib.pyplot.figure()
+		matplotlib.pyplot.figure(figsize=(6,6))
 		matplotlib.pyplot.imshow(boostImageData(right_exposure.data), cmap='gray', origin='lower', aspect='equal')
 		matplotlib.pyplot.title("centre x: %d y: %d"%(cutout['x'], cutout['y']))
 		#matplotlib.pyplot.pause(0.1)
@@ -222,11 +222,14 @@ if __name__ == "__main__":
 			for r in right_exposure.sources:
 				distance = math.sqrt( (l['x'] - r['x'])**2 + (l['y'] - r['y'])**2)
 				peakRatio = l['peak'] / r['peak']
-
-				if distance<distanceThreshold and (peakRatio>0.8 and peakRatio<1.2) and distance<closestMatch:
-					match = { "leftSource": l, "rightSource": r, "distance": distance, "dx" : l['x'] - r['x'], "dy" : l['y'] - r['y']}
+				fluxRatio = l['flux'] / r['flux']
+				if distance<distanceThreshold and distance<closestMatch:
 					closestMatch = distance
-					matched = True
+					print("peak ratio: peak: %.2f flux ratio: %f %.2f  %.2f  (%.0f, %.0f)"%(peakRatio, fluxRatio, l['peak'], r['peak'], l['x'], l['y']))	
+					if (fluxRatio>0.8 and fluxRatio<1.2):
+						match = { "leftSource": l, "rightSource": r, "distance": distance, "dx" : l['x'] - r['x'], "dy" : l['y'] - r['y'], 'flux' : numpy.mean([l['flux'], r['flux']])}
+						matched = True
+						print("...matched")
 			if matched: matches.append(match)
 
 		
@@ -239,9 +242,10 @@ if __name__ == "__main__":
 
 		xValues = [ m['leftSource']['x'] for m in matches]
 		yValues = [ m['leftSource']['y'] for m in matches]
-		uValues = [ m['dx'] for m in matches]
 		vValues = [ m['dy'] for m in matches]
-
+		uValues = [ m['dx'] for m in matches]
+		fluxValues = [ m['flux'] for m in matches]
+		
 		median_dx = numpy.median(uValues)
 		median_dy = numpy.median(vValues)
 		uValues.sort()
@@ -273,9 +277,19 @@ if __name__ == "__main__":
 		cutout['median_dy'] = round(median_dy,2)
 		print("median values {:.2f} dx and {:.2f} dy.".format(median_dx, median_dy))
 
-		fig, ax = matplotlib.pyplot.subplots()
+		uValues = [ m['dx'] for m in matches]
+		
+		fig, ax = matplotlib.pyplot.subplots(figsize=(6,6))
 		q = ax.quiver(xValues, yValues, uValues, vValues)
+
+		# Draw circles at the base of the arrows
+		for index in range(len(xValues)):
+			circle1 = matplotlib.pyplot.Circle((xValues[index], yValues[index]), numpy.log10(fluxValues[index]), color='b', fill=False)
+			ax.add_patch(circle1)
+			print(index, fluxValues[index], numpy.log10(fluxValues[index]))
+
 		quiverLength = round(numpy.mean(uValues), 0)
+		quiverLength = 1
 		if quiverLength<1: quiverLength=1
 		ax.quiverkey(q, X=0.3, Y=-.10, U=quiverLength, label='Quiver key, length = %.0f pixels'%quiverLength, labelpos='E')
 		# Add median quiver
