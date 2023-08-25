@@ -176,6 +176,8 @@ if __name__ == "__main__":
 		[ 0, 0, 0], 
 		[ 0, 0, 0]
 	]  
+	quiverLength = 1
+		
 
 	for cutout in cutouts:
 		print(cutout)	
@@ -183,8 +185,8 @@ if __name__ == "__main__":
 		print("\tSubtracting background...")
 		left_exposure.cutout([cutout['x'], cutout['y'], cutout['width'], cutout['height']])	
 		left_exposure.subtractBackground()
-		matplotlib.pyplot.figure(figsize=(6,6))
-		matplotlib.pyplot.imshow(boostImageData(left_exposure.data), cmap='gray', origin='lower', aspect='equal')
+		matplotlib.pyplot.figure(figsize=(4,4))
+		matplotlib.pyplot.imshow(1 - boostImageData(left_exposure.data), cmap='gray', origin='lower', aspect='equal')
 		matplotlib.pyplot.title("centre x: %d y: %d"%(cutout['x'], cutout['y']))
 		#matplotlib.pyplot.pause(0.1)
 		filename = "%02d_left.png"%cutout['id']
@@ -197,8 +199,8 @@ if __name__ == "__main__":
 		print("\tSubtracting background...")
 		right_exposure.cutout([cutout['x'], cutout['y'], cutout['width'], cutout['height']])
 		right_exposure.subtractBackground()
-		matplotlib.pyplot.figure(figsize=(6,6))
-		matplotlib.pyplot.imshow(boostImageData(right_exposure.data), cmap='gray', origin='lower', aspect='equal')
+		matplotlib.pyplot.figure(figsize=(4,4))
+		matplotlib.pyplot.imshow(1 - boostImageData(right_exposure.data), cmap='gray', origin='lower', aspect='equal')
 		matplotlib.pyplot.title("centre x: %d y: %d"%(cutout['x'], cutout['y']))
 		#matplotlib.pyplot.pause(0.1)
 		filename = "%02d_right.png"%cutout['id']
@@ -279,8 +281,8 @@ if __name__ == "__main__":
 
 		uValues = [ m['dx'] for m in matches]
 		
-		fig, ax = matplotlib.pyplot.subplots(figsize=(6,6))
-		q = ax.quiver(xValues, yValues, uValues, vValues)
+		fig, ax = matplotlib.pyplot.subplots(figsize=(4,4))
+		q = ax.quiver(xValues, yValues, uValues, vValues, scale=10)
 
 		# Draw circles at the base of the arrows
 		for index in range(len(xValues)):
@@ -288,12 +290,10 @@ if __name__ == "__main__":
 			ax.add_patch(circle1)
 			print(index, fluxValues[index], numpy.log10(fluxValues[index]))
 
-		quiverLength = round(numpy.mean(uValues), 0)
-		quiverLength = 1
-		if quiverLength<1: quiverLength=1
+		# quiverLength = round(numpy.mean(uValues), 0)
 		ax.quiverkey(q, X=0.3, Y=-.10, U=quiverLength, label='Quiver key, length = %.0f pixels'%quiverLength, labelpos='E')
 		# Add median quiver
-		q = ax.quiver([250], [250], [median_dx], [median_dy], color='r')
+		q = ax.quiver([250], [250], [median_dx], [median_dy], color='r', scale=10)
 		ax.set_xlim(left=0, right=left_exposure.dimensions[1])
 		ax.set_ylim(bottom=0, top=left_exposure.dimensions[0])
 		matplotlib.pyplot.title("median dx: %.2f dy: %.2f (red arrow)"%(median_dx, median_dy))
@@ -346,10 +346,9 @@ if __name__ == "__main__":
 	yValues = [ c['y'] for c in cutouts ]
 	uValues = [ c['median_dx'] for c in cutouts]
 	vValues = [ c['median_dy'] for c in cutouts]
-	q = ax.quiver(xValues, yValues, uValues, vValues, color='w')
-	quiverLength = round(numpy.mean(uValues), 0)
-	if quiverLength<1: quiverLength=1
+	q = ax.quiver(xValues, yValues, uValues, vValues, color='w', scale=10)
 	ax.quiverkey(q, X=0.3, Y=-.10, U=quiverLength, label='Quiver key, length = %.0f pixels'%quiverLength, labelpos='E')
+		
 	ax.set_xlim(left=0, right=left_exposure.dimensions[1])
 	ax.set_ylim(bottom=0, top=left_exposure.dimensions[0])
 	median_dx = numpy.median(uValues)
