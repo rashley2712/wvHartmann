@@ -307,8 +307,16 @@ if __name__ == "__main__":
 		right_exposure.reset()
 		# end of the loop through each of the 9 sections
 
-	results = { "left_image" : { "filename": left_exposure.filename, "arm": left_exposure.arm, "VPH" : left_exposure.VPH, "shutter" : left_exposure.shutter, "fpmode" : left_exposure.fpmode },
-				"right_image" : { "filename": right_exposure.filename, "arm": right_exposure.arm, "VPH" : right_exposure.VPH, "shutter" : right_exposure.shutter, "fpmode" : right_exposure.fpmode }
+	results = { "left_image" : { "filename": left_exposure.filename, "arm": left_exposure.arm, "VPH" : left_exposure.VPH, "shutter" : left_exposure.shutter, 
+				"fpmode" : left_exposure.fpmode,
+				"focusMTA": left_exposure.focusA,
+				"focusMTB": left_exposure.focusB
+				},
+				"right_image" : { "filename": right_exposure.filename, "arm": right_exposure.arm, "VPH" : right_exposure.VPH, "shutter" : right_exposure.shutter,
+				"fpmode" : right_exposure.fpmode,
+				"focusMTA": right_exposure.focusA,
+				"focusMTB": right_exposure.focusB
+				 }
 	}
 	
 	results['dx_matrix'] = dx_matrix

@@ -42,6 +42,13 @@ function buildSummary() {
 	tableHTML+= "<td align='center'>" + results['right_image'].shutter + "</td>";
 	tableHTML+= "</tr>";
 	
+	tableHTML+= "<tr>";
+	tableHTML+= "<th align='right' width='20%'>Focus motor:</th>";
+	tableHTML+= "<td align='center'>MTA: " + results['left_image'].focusMTA  + "<br/>MTB: " + results['left_image'].focusMTB  + "</td>";
+	tableHTML+= "<td align='center'>MTA: " + results['right_image'].focusMTA + "<br/>MTB: " + results['right_image'].focusMTB + "</td>";
+	tableHTML+= "</tr>";
+	
+
 	tableHTML+="</table>";
 
 	document.getElementById("summary").innerHTML = tableHTML;
