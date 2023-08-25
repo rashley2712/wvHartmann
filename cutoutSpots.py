@@ -225,6 +225,9 @@ if __name__ == "__main__":
 				distance = math.sqrt( (l['x'] - r['x'])**2 + (l['y'] - r['y'])**2)
 				peakRatio = l['peak'] / r['peak']
 				fluxRatio = l['flux'] / r['flux']
+				if l['peak']>60000 or r['peak']>60000: 
+					print("Saturated spot!")
+					continue
 				if distance<distanceThreshold and distance<closestMatch:
 					closestMatch = distance
 					print("peak ratio: peak: %.2f flux ratio: %f %.2f  %.2f  (%.0f, %.0f)"%(peakRatio, fluxRatio, l['peak'], r['peak'], l['x'], l['y']))	
