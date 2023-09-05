@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse, sys, json, datetime, os, re
 import matplotlib.pyplot
+import matplotlib
 import numpy, math
 from astropy.io import fits
 import astropy, photutils, scipy
@@ -132,6 +133,7 @@ if __name__ == "__main__":
 		print("Astropy version:", astropy.__version__)
 		print("Photutils version:", photutils.__version__)
 		print("Scipy version:", scipy.__version__)
+		print("Matplotlib version:", matplotlib.__version__)
 		sys.exit()
 
 	if (args.left is None) or (args.right is None):
