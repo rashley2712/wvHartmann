@@ -164,7 +164,8 @@ if __name__ == "__main__":
 			notFound = False
 			cutouts = c['cutouts']
 	if notFound:
-		print("Could not find cutout info for arm: %s and VPH: %s"%(left_exposure.arm, left_exposure.VPH))
+		print("Could not find cutout info for arm: %s and VPH: %s\nPlease check the 'cutouts.json' file."%(left_exposure.arm, left_exposure.VPH))
+		sys.exit()
 	
 	i=0
 	j=0
@@ -354,7 +355,7 @@ if __name__ == "__main__":
 	fig, ax = matplotlib.pyplot.subplots()
 	fig.set_figheight(6)
 	fig.set_figwidth(12)
-	matplotlib.pyplot.imshow(boostImageData(left_exposure.data), cmap='gray', origin='lower', aspect='equal')
+	matplotlib.pyplot.imshow(1-boostImageData(left_exposure.data), cmap='gray', origin='lower', aspect='equal')
 	xValues = [ c['x'] for c in cutouts ]
 	yValues = [ c['y'] for c in cutouts ]
 	uValues = [ c['median_dx'] for c in cutouts]

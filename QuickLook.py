@@ -157,7 +157,7 @@ class QL:
             plt.figure()
             plt.imshow(boostImageData(self.newarray), cmap='gray', origin='lower', aspect='equal')
             #plt.colorbar()
-            plt.show(block=False)
+            plt.show(block=True)
 
     def writeArray(self, outfile):
         fits.writeto(outfile, self.newarray, self.header)
