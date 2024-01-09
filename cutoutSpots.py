@@ -124,7 +124,7 @@ if __name__ == "__main__":
 	parser.add_argument("--plotsources", action="store_true", help='Plots the found sources as a schematic.')
 	parser.add_argument("--version", action="store_true", help='Show the versions of the libraries used. Then exits.')
 	parser.add_argument("--cutouts", help="A JSON file defining the cutouts (aka sub-regions) of the image to use.")
-	parser.add_argument("--thresh", default=-1, type=int,  help="Threshhold for segmentation (default 5 red and 20 blue).")
+	parser.add_argument("--thresh", default=-1, type=float,  help="Threshhold for segmentation (default 5 red and 20 blue).")
 	args = parser.parse_args()
 	(execPath, exec) = os.path.split(__file__)
 	
