@@ -98,13 +98,18 @@ class exposure:
 		data = self.data
 		threshold = thresh * self.bkg.background_rms
 		segment_map = detect_sources(data, threshold, npixels=10)
-		cat = SourceCatalog(data, segment_map)
-		tbl = cat.to_table()
+		if segment_map is None:
+			print("No sources found.")
+			self.sources = []
+		else:
+			cat = SourceCatalog(data, segment_map)
+			tbl = cat.to_table()
 
-		for t in tbl:
-			source = { "x" :  round(t['xcentroid'], 3), "y" : round(t['ycentroid'], 3), "peak" : round(t['max_value'], 3), 'flux' : t['segment_flux']}
-			self.sources.append(source)
-		print("\t%d sources found."%len(self.sources))
+			for t in tbl:
+				source = { "x" :  round(t['xcentroid'], 3), "y" : round(t['ycentroid'], 3), "peak" : round(t['max_value'], 3), 'flux' : t['segment_flux']}
+				self.sources.append(source)
+			print("\t%d sources found."%len(self.sources))
+		
 
 	def plotSources(self):
 		self.figure = matplotlib.pyplot.figure()
@@ -114,6 +119,23 @@ class exposure:
 		matplotlib.pyplot.scatter(xValues, yValues, c=cValues, cmap="hot")
 		matplotlib.pyplot.draw()
 		matplotlib.pyplot.pause(0.1)
+
+def cleanupDirectory():
+	folder = os.listdir(".")
+
+	filesToRemove = []
+	for f in folder: 
+		if re.search("[0-9]{2}_amatches.json", f): filesToRemove.append(f)
+		if re.search("[0-9]{2}_zquiver.png", f): filesToRemove.append(f)
+		if re.search("[0-9]{2}_left.png", f): filesToRemove.append(f)
+		if re.search("[0-9]{2}_right.png", f): filesToRemove.append(f)
+		if re.search("full_quiver.png", f): filesToRemove.append(f)
+		if re.search("results.", f): filesToRemove.append(f)
+
+	for f in filesToRemove:
+		os.remove(f)
+
+
 
 		
 if __name__ == "__main__":
@@ -125,8 +147,11 @@ if __name__ == "__main__":
 	parser.add_argument("--version", action="store_true", help='Show the versions of the libraries used. Then exits.')
 	parser.add_argument("--cutouts", help="A JSON file defining the cutouts (aka sub-regions) of the image to use.")
 	parser.add_argument("--thresh", default=-1, type=float,  help="Threshhold for segmentation (default 5 red and 20 blue).")
+	parser.add_argument("--clean", action="store_true", help="Clean up the folder of previous script outputs before starting.")
 	args = parser.parse_args()
 	(execPath, exec) = os.path.split(__file__)
+	
+	cleanupDirectory()
 	
 	if args.version: 
 		print("Python version:", sys.version)
@@ -216,9 +241,31 @@ if __name__ == "__main__":
 			right_exposure.plotSources()
 			matplotlib.pyplot.show(block=False)
 
+		# First check that both left and right exposure have some detected spots... otherwise skip this cutout...
+		skip = False
+		if len(left_exposure.sources) == 0:
+			print("Left exposure for this cutout has no detected sources... skipping...")
+			skip = True
+		if len(right_exposure.sources) == 0:
+			print("Right exposure for this cutout has no detected sources... skipping...")
+			skip = True
+		
+		if skip:
+			print("Cutout info: ", cutout)
+			print("Try changing the threshold or moving the cutout to a region of the exposure that has more spots.")
+			left_exposure.reset()
+			right_exposure.reset()
+			cutout["skip"] = True
+			cutout['median_dx'] = "N/A"
+			cutout['median_dy'] = "N/A"
+			continue
+
+		
+		
 		# match sources
 		distanceThreshold = 10
 		matches = []
+		
 		for l in left_exposure.sources:
 			#print(l)
 			closestMatch = 1E6
@@ -311,7 +358,8 @@ if __name__ == "__main__":
 		else: matplotlib.pyplot.close()
 		left_exposure.reset()
 		right_exposure.reset()
-		# end of the loop through each of the 9 sections
+		cutout["skip"] = False
+	# end of the loop through each of the 9 sections
 
 	results = { "left_image" : { "filename": left_exposure.filename, "arm": left_exposure.arm, "VPH" : left_exposure.VPH, "shutter" : left_exposure.shutter, 
 				"fpmode" : left_exposure.fpmode,
@@ -356,6 +404,13 @@ if __name__ == "__main__":
 	fig.set_figheight(6)
 	fig.set_figwidth(12)
 	matplotlib.pyplot.imshow(1-boostImageData(left_exposure.data), cmap='gray', origin='lower', aspect='equal')
+	
+	# Remove the 'blank' cutouts from the list
+	validCutouts = []
+	for c in cutouts:
+		if not c['skip']: validCutouts.append(c)
+	cutouts = validCutouts
+	
 	xValues = [ c['x'] for c in cutouts ]
 	yValues = [ c['y'] for c in cutouts ]
 	uValues = [ c['median_dx'] for c in cutouts]
